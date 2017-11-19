@@ -1,17 +1,14 @@
-InstallCert.java
-
-Java program written by Andreas Sterbenz, and posted on a blog in Oct, 2006:
-https://blogs.oracle.com/gc/entry/unable_to_find_valid_certification
-
-Link to Java program in Andreas' blog no longer works, but the source was linked in another blog:
-http://nodsw.com/blog/leeland/2006/12/06-no-more-unable-find-valid-certification-path-requested-target
+InstallCaCert.kt
+------------------
 
 Usage:
+--------
+
 Need to compile, first:
-javac InstallCert.java
+kotlinc InstallCaCert.kotlin
 
 # Access server, and retrieve certificate (accept default certificate 1)
-java InstallCert [host]:[port]
+kotlin InstallCaCert [host]:[port]
 
 # Extract certificate from created jssecacerts keystore
 keytool -exportcert -alias [host]-1 -keystore jssecacerts -storepass changeit -file [host].cer
@@ -20,7 +17,8 @@ keytool -exportcert -alias [host]-1 -keystore jssecacerts -storepass changeit -f
 keytool -importcert -alias [host] -keystore [path to system keystore] -storepass changeit -file [host].cer
 
 # Example:
-java InstallCert woot.com:443
+
+    kotlin InstallCaCert woot.com:443
 
     Loading KeyStore /usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/security/cacerts...
     Opening connection to woot.com:443...

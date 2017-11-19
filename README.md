@@ -4,17 +4,26 @@ InstallCaCert.kt
 Usage:
 --------
 
-Need to compile, first:
+**compile, first:**
+
+```
 kotlinc InstallCaCert.kotlin
+```
 
-# Access server, and retrieve certificate (accept default certificate 1)
+**Access server, and retrieve certificate (accept default certificate 1)**
+
+```
 kotlin InstallCaCert [host]:[port]
+```
 
-# Extract certificate from created jssecacerts keystore
+**Extract certificate from created jssecacerts keystore**
+
+```
 keytool -exportcert -alias [host]-1 -keystore jssecacerts -storepass changeit -file [host].cer
 
 # Import certificate into system keystore
 keytool -importcert -alias [host] -keystore [path to system keystore] -storepass changeit -file [host].cer
+```
 
 # Example:
 

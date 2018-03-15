@@ -287,3 +287,5 @@ Build and create artifact
 ```
 gradle clean jar
 ```
+
+Also read - [why do i need to install server cert in truststore?](https://github.com/prayagupd/tls.kotlin#how-does-client-know-that-it-is-dealing-with-the-right-person-or-rather-the-right-web-server)

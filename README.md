@@ -7,7 +7,7 @@ Usage:
 **1) Access server, and retrieve certificate (accept default certificate [1])**, make sure of expiry date
 
 ```
-java -jar install-cacert.kotlin.jar [host]:[port]
+java -jar build/lib/install-cacert.kotlin.jar [host]:[port]
 ```
 
 **2) Extract certificate from created `jsse-cacerts` keystore**
@@ -164,7 +164,7 @@ Added certificate to cert-keystore 'jssecacerts' using alias 'dialogflow.googlea
 you will see `jssecacerts` created.
 
 ```
-[guest@digitalassistant-test-c1 ~]$ ls -l
+[prayagupd@prayagupd ~]$ ls -l
 total 252948
 -rw-r--r--  1 guest guest    968105 Mar 15 01:29 install-cacert.kotlin.jar
 -rw-rw-r--  1 guest guest    114483 Mar 15 01:36 jssecacerts
@@ -269,13 +269,15 @@ Trust this certificate? [no]:  yes
 Certificate was added to keystore
 ```
 
-you will see cacerts updated with one entry. by default JDK truststore has 104 entries, which
+you will see cacerts.jks updated with one entry `Certificate fingerprint (SHA1): 74:73:B8:A0:B5:4E:E0:A2:30:B4:45:D6:F1:28:7D:39:46:8D:F9:DB`.
+
+By default JDK truststore [has 104 entries](https://github.com/prayagupd/tls.kotlin/issues/4), which
 becomes 105 once you add above cert.
 
 Verify,
 
 ```
-keytool -list -keystore jdk1.8.0_161/jre/lib/security/cacerts
+keytool -list -keystore jdk1.8.0_161/jre/lib/security/cacerts -storepass changeit
 ```
 
 

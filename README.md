@@ -29,7 +29,7 @@ keytool -importcert -alias [host] -keystore [path to system keystore] -storepass
 
 # Example:
 
-    kotlin InstallCaCert woot.com:443
+    java -jar install-cacert.kotlin.jar dialogflow.googleapis.com:443
 
     Loading KeyStore /usr/lib/jvm/java-6-sun-1.6.0.26/jre/lib/security/cacerts...
     Opening connection to woot.com:443...

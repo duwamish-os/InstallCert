@@ -7,14 +7,13 @@ import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
+import kotlin.experimental.and
 
 /**
  * Class used to add the server's certificate to the TrustKeyStore
  * with your trusted certificates.
  */
 object InstallCaCert {
-
-    private val HEXDIGITS = "0123456789abcdef".toCharArray()
 
     @Throws(Exception::class)
     @JvmStatic
@@ -61,13 +60,13 @@ object InstallCaCert {
         val socket = factory.createSocket(host, port) as SSLSocket
         socket.soTimeout = 10000
         try {
-            println("=================================================================")
+            println("=====================================================================")
             println("Starting TLS handshake...")
             socket.startHandshake()
             socket.close()
             println()
-            println("No errors, certificate is already trusted")
-            println("=================================================================")
+            println("No errors, server certificate is already trusted")
+            println("=====================================================================")
         } catch (e: SSLException) {
             println()
             e.printStackTrace(System.out)
@@ -75,15 +74,15 @@ object InstallCaCert {
 
         val certChain = tm.chain
         if (certChain == null) {
-            println("=================================================================")
+            println("=======================================================================")
             println("Could not obtain server certificate chain")
-            println("=================================================================")
+            println("=======================================================================")
             return
         }
 
         val reader = BufferedReader(InputStreamReader(System.`in`))
 
-        println("====================================================================")
+        println("===========================================================================")
         println("Server sent " + certChain.size + " certificate(s):")
 
         val sha1 = MessageDigest.getInstance("SHA1")
@@ -94,9 +93,9 @@ object InstallCaCert {
             println(" " + (i + 1) + " Subject " + cert.subjectDN)
             println("   Issuer  " + cert.issuerDN)
             sha1.update(cert.encoded)
-            println("   sha1    " + toHexString(sha1.digest()))
+            println("   sha1    " + HexUncle.toHexString(sha1.digest()))
             md5.update(cert.encoded)
-            println("   md5     " + toHexString(md5.digest()))
+            println("   md5     " + HexUncle.toHexString(md5.digest()))
             println()
         }
         println("=============================================================================")
@@ -123,7 +122,7 @@ object InstallCaCert {
         println(cacert)
         println()
         println("Added certificate to cert-keystore 'jssecacerts' using alias '" + alias + "'")
-        println("==============================================================================")
+        println("===============================================================================")
     }
 
     private fun loadPrivateKeystore(jsseCacertsFile: File, passphrase: CharArray): KeyStore {
@@ -147,17 +146,6 @@ object InstallCaCert {
             }
         }
         return jsseCacertsFile
-    }
-
-    private fun toHexString(bytes: ByteArray): String {
-        val sb = StringBuilder(bytes.size * 3)
-        for (b in bytes) {
-            val c = b.toInt() and 255
-            sb.append(HEXDIGITS[b shr 4])
-            sb.append(HEXDIGITS[c and 15])
-            sb.append(' ')
-        }
-        return sb.toString()
     }
 
     private class SavingTrustManager internal constructor(private val tm: X509TrustManager) : X509TrustManager {

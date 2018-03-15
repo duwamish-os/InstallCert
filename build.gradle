@@ -19,7 +19,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'InstallCaCert'
+        attributes 'Main-Class': 'com.installcert.InstallCaCert'
     }
 
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

@@ -7,7 +7,7 @@ import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
 
 /**
- * Class used to add the server's certificate to the KeyStore
+ * Class used to add the server's certificate to the TrustKeyStore
  * with your trusted certificates.
  */
 object InstallCaCert {
@@ -35,37 +35,25 @@ object InstallCaCert {
     }
 
     private fun cacert(host: String, port: Int, passphrase: CharArray) {
-        var jsseCacertsFile = File("jssecacerts")
+        var jsseCacertsFile = jsseCacertsFilePath()
 
-        if (!jsseCacertsFile.isFile) {
-            val jreSecurityDir = File(System.getProperty("java.home") + separatorChar + "lib" + separatorChar + "security")
+        println("==========================================================================================")
+        println("Loading existing certKeyStore(Private keys) $jsseCacertsFile with passphrase $passphrase")
+        println("==========================================================================================")
 
-            jsseCacertsFile = File(jreSecurityDir, "jssecacerts")
-
-            if (!jsseCacertsFile.isFile) {
-                jsseCacertsFile = File(jreSecurityDir, "cacerts")
-            }
-        }
-
-        println("=================================================================")
-        println("Loading existing certKeyStore $jsseCacertsFile with passphrase $passphrase")
-        println("=================================================================")
-
-        val `in` = FileInputStream(jsseCacertsFile)
-        val certKeyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-        certKeyStore.load(`in`, passphrase)
-        `in`.close()
+        val certKeyStore = loadPrivateKeystore(jsseCacertsFile, passphrase)
 
         val context = SSLContext.getInstance("TLS")
         val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
         tmf.init(certKeyStore)
+
         val defaultTrustManager = tmf.trustManagers[0] as X509TrustManager
         val tm = SavingTrustManager(defaultTrustManager)
         context.init(null, arrayOf<TrustManager>(tm), null)
         val factory = context.socketFactory
 
         println("=================================================================")
-        println("Opening connection to $host:$port...")
+        println("Opening connection to $host:$port................................")
         println("=================================================================")
 
         val socket = factory.createSocket(host, port) as SSLSocket
@@ -93,7 +81,7 @@ object InstallCaCert {
 
         val reader = BufferedReader(InputStreamReader(System.`in`))
 
-        println("=================================================================")
+        println("====================================================================")
         println("Server sent " + certChain.size + " certificate(s):")
 
         val sha1 = MessageDigest.getInstance("SHA1")
@@ -109,7 +97,7 @@ object InstallCaCert {
             println("   md5     " + toHexString(md5.digest()))
             println()
         }
-        println("=================================================================")
+        println("====================================================================")
 
         println("Enter certificate to add to trusted keystore or 'q' to quit: [1]")
         val line = reader.readLine().trim { it <= ' ' }
@@ -117,7 +105,7 @@ object InstallCaCert {
         try {
             certIndex = if (line.isEmpty()) 0 else Integer.parseInt(line) - 1
         } catch (e: NumberFormatException) {
-            println("KeyStore not changed")
+            println("KeyStore(PrivateKeyStore) not changed")
             return
         }
 
@@ -134,6 +122,29 @@ object InstallCaCert {
         println()
         println("Added certificate to cert-keystore 'jssecacerts' using alias '" + alias + "'")
         println("=================================================================")
+    }
+
+    private fun loadPrivateKeystore(jsseCacertsFile: Unit, passphrase: CharArray) {
+        val `in` = FileInputStream(jsseCacertsFile)
+        val certKeyStore = KeyStore.getInstance(KeyStore.getDefaultType())
+        certKeyStore.load(`in`, passphrase)
+        `in`.close()
+        return certKeyStore
+    }
+
+    private fun jsseCacertsFilePath() {
+        var jsseCacertsFile = File("jssecacerts")
+
+        if (!jsseCacertsFile.isFile) {
+            val jreSecurityDir = File(System.getProperty("java.home") + separatorChar + "lib" + separatorChar + "security")
+
+            jsseCacertsFile = File(jreSecurityDir, "jssecacerts")
+
+            if (!jsseCacertsFile.isFile) {
+                jsseCacertsFile = File(jreSecurityDir, "cacerts")
+            }
+        }
+        jsseCacertsFile
     }
 
     private fun toHexString(bytes: ByteArray): String {

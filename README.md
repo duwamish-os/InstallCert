@@ -6,7 +6,7 @@ Usage:
 
 **compile, first:**
 
-```
+```bash
 kotlinc InstallCaCert.kotlin
 ```
 
@@ -16,12 +16,14 @@ kotlinc InstallCaCert.kotlin
 kotlin InstallCaCert [host]:[port]
 ```
 
-**Extract certificate from created jssecacerts keystore**
+**Extract certificate from created `jssecacerts` keystore**
 
 ```
 keytool -exportcert -alias [host]-1 -keystore jssecacerts -storepass changeit -file [host].cer
+```
 
-# Import certificate into system keystore
+```
+# Import certificate into system trust keystore
 keytool -importcert -alias [host] -keystore [path to system keystore] -storepass changeit -file [host].cer
 ```
 
@@ -46,7 +48,7 @@ keytool -importcert -alias [host] -keystore [path to system keystore] -storepass
 
     Enter certificate to add to trusted keystore or 'q' to quit: [1]
 
-[enter]
+`[enter]`
 
     [
     [

@@ -1,19 +1,20 @@
 package com.installcert
 
-import javax.net.ssl.*
 import java.io.*
 import java.io.File.separatorChar
 import java.security.KeyStore
 import java.security.MessageDigest
 import java.security.cert.CertificateException
 import java.security.cert.X509Certificate
-import kotlin.experimental.and
+import javax.net.ssl.*
 
 /**
  * Class used to add the server's certificate to the TrustKeyStore
  * with your trusted certificates.
  */
 object InstallCaCert {
+
+    val DefaultTrustStorePassword = "changeit"
 
     @Throws(Exception::class)
     @JvmStatic
@@ -24,13 +25,13 @@ object InstallCaCert {
             val c = args[0].split(":".toRegex()).dropLastWhile({ it.isEmpty() }).toTypedArray()
             val host = c[0]
             val port = if (c.size == 1) 443 else Integer.parseInt(c[1])
-            val p = if (args.size == 1) "changeit" else args[1]
+            val p = if (args.size == 1) DefaultTrustStorePassword else args[1]
             val passphrase = p.toCharArray()
 
             cacert(host, port, passphrase)
 
         } else {
-            println("Usage: kotlin com.installcert.InstallCaCert <host>[:port] [passphrase]")
+            println("Usage: java -jar InstallCaCert.jar <host>[:port] [passphrase]")
             return
         }
     }
@@ -38,9 +39,8 @@ object InstallCaCert {
     private fun cacert(host: String, port: Int, passphrase: CharArray) {
         val jsseCacertsFile = jsseCacertsFilePath()
 
-        println("==========================================================================================")
-        println("Loading existing certKeyStore(Private keys) $jsseCacertsFile with passphrase $passphrase")
-        println("==========================================================================================")
+        println("=============================================================================================")
+        println("Loading existing certKeyStore(Private keys) $jsseCacertsFile with passphrase ${String(passphrase)}")
 
         val certKeyStore = loadPrivateKeystore(jsseCacertsFile, passphrase)
 
@@ -53,20 +53,18 @@ object InstallCaCert {
         context.init(null, arrayOf<TrustManager>(tm), null)
         val factory = context.socketFactory
 
-        println("=================================================================")
-        println("Opening connection to $host:$port................................")
-        println("=================================================================")
+        println("Opening connection to $host:$port............................................................")
+        println("=============================================================================================")
 
-        val socket = factory.createSocket(host, port) as SSLSocket
-        socket.soTimeout = 10000
+        val serverSocket = factory.createSocket(host, port) as SSLSocket
+        serverSocket.soTimeout = 10000
         try {
-            println("=====================================================================")
-            println("Starting TLS handshake...")
-            socket.startHandshake()
-            socket.close()
+            println("Starting TLS handshake with $host:$port")
+            serverSocket.startHandshake()
+            serverSocket.close()
             println()
-            println("No errors, server certificate is already trusted")
-            println("=====================================================================")
+            println("No errors handshaking $host:$port, server certificate is already trusted")
+            println("=============================================================================================")
         } catch (e: SSLException) {
             println()
             e.printStackTrace(System.out)
@@ -75,14 +73,14 @@ object InstallCaCert {
         val certChain = tm.chain
         if (certChain == null) {
             println("=======================================================================")
-            println("Could not obtain server certificate chain")
+            println("Could not obtain server certificate chain for $host")
             println("=======================================================================")
             return
         }
 
         val reader = BufferedReader(InputStreamReader(System.`in`))
 
-        println("===========================================================================")
+        println("=============================================================================================")
         println("Server sent " + certChain.size + " certificate(s):")
 
         val sha1 = MessageDigest.getInstance("SHA1")
@@ -98,21 +96,22 @@ object InstallCaCert {
             println("   md5     " + HexUncle.toHexString(md5.digest()))
             println()
         }
-        println("=============================================================================")
+        println("=============================================================================================")
 
-        println("Enter certificate to add to trusted keystore or 'q' to quit: [1]")
+        println()
+        print("Enter [or certificate-number] to add certificate to trusted keystore or 'q' to quit: [1/q]")
         val line = reader.readLine().trim { it <= ' ' }
         val certIndex: Int
         try {
             certIndex = if (line.isEmpty()) 0 else Integer.parseInt(line) - 1
         } catch (e: NumberFormatException) {
-            println("KeyStore(PrivateKeyStore) not changed")
+            println("KeyStore(Public KeyStore) not changed")
             return
         }
 
         val cacert = certChain[certIndex]
-        val alias = host + "-" + (certIndex + 1)
-        certKeyStore.setCertificateEntry(alias, cacert)
+        val certAlias = host + "-" + (certIndex + 1)
+        certKeyStore.setCertificateEntry(certAlias, cacert)
 
         val cacertOutputStream = FileOutputStream("jssecacerts")
         certKeyStore.store(cacertOutputStream, passphrase)
@@ -121,7 +120,7 @@ object InstallCaCert {
         println()
         println(cacert)
         println()
-        println("Added certificate to cert-keystore 'jssecacerts' using alias '" + alias + "'")
+        println("Added certificate to cert-keystore 'jssecacerts' using alias '" + certAlias + "'")
         println("===============================================================================")
     }
 

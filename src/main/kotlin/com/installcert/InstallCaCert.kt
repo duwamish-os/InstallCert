@@ -1,3 +1,5 @@
+package com.installcert
+
 import javax.net.ssl.*
 import java.io.*
 import java.io.File.separatorChar
@@ -29,13 +31,13 @@ object InstallCaCert {
             cacert(host, port, passphrase)
 
         } else {
-            println("Usage: kotlin InstallCaCert <host>[:port] [passphrase]")
+            println("Usage: kotlin com.installcert.InstallCaCert <host>[:port] [passphrase]")
             return
         }
     }
 
     private fun cacert(host: String, port: Int, passphrase: CharArray) {
-        var jsseCacertsFile = jsseCacertsFilePath()
+        val jsseCacertsFile = jsseCacertsFilePath()
 
         println("==========================================================================================")
         println("Loading existing certKeyStore(Private keys) $jsseCacertsFile with passphrase $passphrase")
@@ -97,7 +99,7 @@ object InstallCaCert {
             println("   md5     " + toHexString(md5.digest()))
             println()
         }
-        println("====================================================================")
+        println("=============================================================================")
 
         println("Enter certificate to add to trusted keystore or 'q' to quit: [1]")
         val line = reader.readLine().trim { it <= ' ' }
@@ -121,10 +123,10 @@ object InstallCaCert {
         println(cacert)
         println()
         println("Added certificate to cert-keystore 'jssecacerts' using alias '" + alias + "'")
-        println("=================================================================")
+        println("==============================================================================")
     }
 
-    private fun loadPrivateKeystore(jsseCacertsFile: Unit, passphrase: CharArray) {
+    private fun loadPrivateKeystore(jsseCacertsFile: File, passphrase: CharArray): KeyStore {
         val `in` = FileInputStream(jsseCacertsFile)
         val certKeyStore = KeyStore.getInstance(KeyStore.getDefaultType())
         certKeyStore.load(`in`, passphrase)
@@ -132,7 +134,7 @@ object InstallCaCert {
         return certKeyStore
     }
 
-    private fun jsseCacertsFilePath() {
+    private fun jsseCacertsFilePath(): File {
         var jsseCacertsFile = File("jssecacerts")
 
         if (!jsseCacertsFile.isFile) {
@@ -144,11 +146,11 @@ object InstallCaCert {
                 jsseCacertsFile = File(jreSecurityDir, "cacerts")
             }
         }
-        jsseCacertsFile
+        return jsseCacertsFile
     }
 
     private fun toHexString(bytes: ByteArray): String {
-        var sb = StringBuilder(bytes.size * 3)
+        val sb = StringBuilder(bytes.size * 3)
         for (b in bytes) {
             val c = b.toInt() and 255
             sb.append(HEXDIGITS[b shr 4])

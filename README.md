@@ -76,3 +76,11 @@ keytool -exportcert -alias woot.com-1 -keystore jssecacerts -storepass changeit 
 yes
 
     Certificate was added to keystore
+
+
+Build and create artifact
+-------------------------
+
+```
+gradle clean jar
+```
